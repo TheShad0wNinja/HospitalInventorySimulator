@@ -1,7 +1,6 @@
 package com.bank.simulation;
 
 import com.bank.models.ProbabilityDistribution;
-import com.bank.ui.components.ProbabilitiesTable;
 
 import java.util.*;
 
@@ -10,8 +9,10 @@ public class SimulationConfigs {
 
     private final int rooms = 5;
     private int reviewTime;
-    private int firstFloorCapacity;
-    private int basementFloorCapacity;
+    private int firstFloorMaxCapacity;
+    private int basementFloorMaxCapacity;
+    private int firstFloorStartCapacity;
+    private int basementFloorStartCapacity;
     private ProbabilityDistribution occupiedRoomsDistribution;
     private ProbabilityDistribution orderLeadTimeDistribution;
     private ProbabilityDistribution roomConsumptionDistribution;
@@ -22,8 +23,10 @@ public class SimulationConfigs {
 
     public void resetParamsToDefault() {
         reviewTime = 5;
-        firstFloorCapacity = 15;
-        basementFloorCapacity = 50;
+        firstFloorMaxCapacity = 15;
+        basementFloorMaxCapacity = 50;
+        firstFloorStartCapacity = 8;
+        basementFloorStartCapacity = 40;
 
         occupiedRoomsDistribution = new ProbabilityDistribution(getDefaultOccupiedRoomsProbabilities());
         orderLeadTimeDistribution = new ProbabilityDistribution(getDefaultOrderLeadTimeProbabilities());
@@ -43,20 +46,20 @@ public class SimulationConfigs {
         this.reviewTime = reviewTime;
     }
 
-    public int getFirstFloorCapacity() {
-        return firstFloorCapacity;
+    public int getFirstFloorMaxCapacity() {
+        return firstFloorMaxCapacity;
     }
 
-    public void setFirstFloorCapacity(int firstFloorCapacity) {
-        this.firstFloorCapacity = firstFloorCapacity;
+    public void setFirstFloorMaxCapacity(int firstFloorMaxCapacity) {
+        this.firstFloorMaxCapacity = firstFloorMaxCapacity;
     }
 
-    public int getBasementFloorCapacity() {
-        return basementFloorCapacity;
+    public int getBasementFloorMaxCapacity() {
+        return basementFloorMaxCapacity;
     }
 
-    public void setBasementFloorCapacity(int basementFloorCapacity) {
-        this.basementFloorCapacity = basementFloorCapacity;
+    public void setBasementFloorMaxCapacity(int basementFloorMaxCapacity) {
+        this.basementFloorMaxCapacity = basementFloorMaxCapacity;
     }
 
     public ProbabilityDistribution getOccupiedRoomsDistribution() {
@@ -69,6 +72,22 @@ public class SimulationConfigs {
 
     public ProbabilityDistribution getRoomConsumptionDistribution() {
         return roomConsumptionDistribution;
+    }
+
+    public int getBasementFloorStartCapacity() {
+        return basementFloorStartCapacity;
+    }
+
+    public void setBasementFloorStartCapacity(int basementFloorStartCapacity) {
+        this.basementFloorStartCapacity = basementFloorStartCapacity;
+    }
+
+    public int getFirstFloorStartCapacity() {
+        return firstFloorStartCapacity;
+    }
+
+    public void setFirstFloorStartCapacity(int firstFloorStartCapacity) {
+        this.firstFloorStartCapacity = firstFloorStartCapacity;
     }
 
     public void setOccupiedRoomsProbabilities(Map<Integer, Double> probabilities) {

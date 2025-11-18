@@ -27,25 +27,36 @@ public class SettingsPageController {
         view.setRoomConsumptionTable(configs.getRoomConsumptionDistribution().getProbabilities());
 
         parameters = view.addParameters(new String[][]{
-                {"firstFloorCapacity", "First Floor Capacity", String.valueOf(configs.getFirstFloorCapacity())},
-                {"basementFloorCapacity", "Basement Floor Capacity", String.valueOf(configs.getBasementFloorCapacity())},
+                {"firstFloorMaxCapacity", "First Floor Maximum Capacity", String.valueOf(configs.getFirstFloorMaxCapacity())},
+                {"basementFloorMaxCapacity", "Basement Floor Maximum Capacity", String.valueOf(configs.getBasementFloorMaxCapacity())},
+                {"firstFloorStartCapacity", "First Floor Starting Capacity", String.valueOf(configs.getFirstFloorStartCapacity())},
+                {"basementFloorStartCapacity", "Basement Floor Starting Capacity", String.valueOf(configs.getBasementFloorStartCapacity())},
                 {"reviewTime", "Review Time", String.valueOf(configs.getReviewTime())},
         });
     }
 
     public void saveParams() {
         try {
-            int firstFloorCapacity = getIntValue("firstFloorCapacity");
-            int basementFloorCapacity = getIntValue("basementFloorCapacity");
+            int firstFloorMaxCapacity = getIntValue("firstFloorMaxCapacity");
+            int basementFloorMaxCapacity = getIntValue("basementFloorMaxCapacity");
+            int firstFloorStartCapacity = getIntValue("firstFloorStartCapacity");
+            int basementFloorStartCapacity = getIntValue("basementFloorStartCapacity");
             int reviewTime = getIntValue("reviewTime");
 
-            if (firstFloorCapacity < 0 || basementFloorCapacity < 0 || reviewTime < 0) {
+            if (firstFloorMaxCapacity < 0 || basementFloorMaxCapacity < 0 || reviewTime < 0 || firstFloorStartCapacity < 0 || basementFloorStartCapacity < 0) {
                 showError("All values must be non-negative numbers");
                 return;
             }
 
-            configs.setFirstFloorCapacity(firstFloorCapacity);
-            configs.setBasementFloorCapacity(basementFloorCapacity);
+            if (firstFloorStartCapacity > firstFloorMaxCapacity || basementFloorStartCapacity > basementFloorMaxCapacity) {
+                showError("Floor start capacity must be less than the maximum capacity");
+                return;
+            }
+
+            configs.setFirstFloorMaxCapacity(firstFloorMaxCapacity);
+            configs.setBasementFloorMaxCapacity(basementFloorMaxCapacity);
+            configs.setFirstFloorStartCapacity(firstFloorStartCapacity);
+            configs.setBasementFloorStartCapacity(basementFloorStartCapacity);
             configs.setReviewTime(reviewTime);
 
             var occupiedRoomProbabilities = extractProbabilitiesFromTable(view.getOccupiedRoomsTable().getTableData());
@@ -111,7 +122,6 @@ public class SettingsPageController {
     }
 
     private int getIntValue(String key) throws NumberFormatException {
-        System.out.println(key + " + " + parameters);
         var value = parameters.get(key).getText();
         if (value == null || value.trim().isEmpty()) {
             return 0;
