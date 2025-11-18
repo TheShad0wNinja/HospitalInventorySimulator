@@ -9,14 +9,15 @@ import org.jfree.chart.JFreeChart;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SimulationPage extends JPanel {
-    private JPanel simulationParamsPanel;
+    private JPanel paramsPanel;
     private JButton startSimulationButton;
-    private JPanel simulationResultsPanel;
-    private JLabel simulationResultsLabel;
+    private JPanel resultsPanel;
+    private JLabel resultsPanelLabel;
 
     public SimulationPage() {
         setLayout(new BorderLayout());
@@ -43,17 +44,17 @@ public class SimulationPage extends JPanel {
         content.add(prepareSimulationStartButton());
         content.add(Box.createVerticalStrut(40));
 
-        simulationResultsLabel = new JLabel("Simulation Results");
-        simulationResultsLabel.setFont(Theme.TITLE_FONT);
-        simulationResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        simulationResultsLabel.setVisible(false);
-        content.add(simulationResultsLabel);
+        resultsPanelLabel = new JLabel("Simulation Results");
+        resultsPanelLabel.setFont(Theme.TITLE_FONT);
+        resultsPanelLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        resultsPanelLabel.setVisible(false);
+        content.add(resultsPanelLabel);
         content.add(Box.createVerticalStrut(5));
         content.add(prepareSimulationResultsPanel());
 
         add(content, BorderLayout.CENTER);
 
-//        new SimulationPageController(this);
+        new SimulationPageController(this);
     }
 
     private JButton prepareSimulationStartButton() {
@@ -68,21 +69,21 @@ public class SimulationPage extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        simulationParamsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        simulationParamsPanel.setBackground(Theme.PANEL_BG);
+        paramsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        paramsPanel.setBackground(Theme.PANEL_BG);
 
-        panel.add(simulationParamsPanel, BorderLayout.CENTER);
+        panel.add(paramsPanel, BorderLayout.CENTER);
 
         return panel;
     }
 
     private JPanel prepareSimulationResultsPanel() {
-        simulationResultsPanel = new ThemePanel();
-        simulationResultsPanel.setLayout(new BoxLayout(simulationResultsPanel, BoxLayout.Y_AXIS));
-        simulationResultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 30, 20));
-        simulationResultsPanel.setVisible(false);
-        simulationResultsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return simulationResultsPanel;
+        resultsPanel = new ThemePanel();
+        resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 30, 20));
+        resultsPanel.setVisible(false);
+        resultsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return resultsPanel;
     }
 
     public void addDataTable(String title, JPanel tablePanel, int height) {
@@ -94,13 +95,13 @@ public class SimulationPage extends JPanel {
         tablePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
         tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        simulationResultsPanel.add(Box.createVerticalStrut(30));
-        simulationResultsPanel.add(label);
-        simulationResultsPanel.add(Box.createVerticalStrut(10));
-        simulationResultsPanel.add(tablePanel);
+        resultsPanel.add(Box.createVerticalStrut(30));
+        resultsPanel.add(label);
+        resultsPanel.add(Box.createVerticalStrut(10));
+        resultsPanel.add(tablePanel);
 
-        simulationResultsPanel.revalidate();
-        simulationResultsPanel.repaint();
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 
     public void addChart(String title, JFreeChart chart) {
@@ -113,46 +114,43 @@ public class SimulationPage extends JPanel {
         chartPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 400));
         chartPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        simulationResultsPanel.add(Box.createVerticalStrut(30));
-        simulationResultsPanel.add(label);
-        simulationResultsPanel.add(Box.createVerticalStrut(10));
-        simulationResultsPanel.add(chartPanel);
+        resultsPanel.add(Box.createVerticalStrut(30));
+        resultsPanel.add(label);
+        resultsPanel.add(Box.createVerticalStrut(10));
+        resultsPanel.add(chartPanel);
 
-        simulationResultsPanel.revalidate();
-        simulationResultsPanel.repaint();
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 
-    public void clearSimulationResults() {
-        simulationResultsPanel.removeAll();
-    }
-
-    public Map<String, JTextField> addSimulationParameter(Map<String, String> parameters) {
-        simulationParamsPanel.removeAll();
+    public Map<String, JTextField> addParameters(String[][] parameters) {
+        paramsPanel.removeAll();
         Map<String, JTextField> map = new HashMap<>();
 
-        for (var entry : parameters.entrySet()) {
+        for (String[] entry : parameters) {
             JPanel panel = new JPanel(new BorderLayout(5, 5));
             panel.setBackground(Theme.PANEL_BG);
 
-            JLabel label = new JLabel(entry.getValue());
+            JLabel label = new JLabel(entry[1]);
             label.setFont(Theme.DEFAULT_FONT);
             label.setForeground(Theme.TEXT_PRIMARY);
             panel.add(label, BorderLayout.NORTH);
 
             ThemeTextField textField = new ThemeTextField(25);
-            textField.setText("10");
-            map.put(entry.getKey(), textField);
+            textField.setText(entry[2]);
+            map.put(entry[0], textField);
             panel.add(textField, BorderLayout.CENTER);
 
-            simulationParamsPanel.add(panel);
+            paramsPanel.add(panel);
         }
 
-        simulationParamsPanel.revalidate();
-        simulationParamsPanel.repaint();
+        paramsPanel.revalidate();
+        paramsPanel.repaint();
+
         return map;
     }
 
-    public void setStartButtonAction(java.awt.event.ActionListener action) {
+    public void setStartButtonAction(ActionListener action) {
         for (var listener : startSimulationButton.getActionListeners()) {
             startSimulationButton.removeActionListener(listener);
         }
@@ -160,9 +158,13 @@ public class SimulationPage extends JPanel {
     }
 
     public void showResults() {
-        simulationResultsLabel.setVisible(true);
-        simulationResultsPanel.setVisible(true);
-        simulationResultsPanel.revalidate();
-        simulationResultsPanel.repaint();
+        resultsPanelLabel.setVisible(true);
+        resultsPanel.setVisible(true);
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
+    }
+
+    public void clearSimulationResults() {
+        resultsPanel.removeAll();
     }
 }

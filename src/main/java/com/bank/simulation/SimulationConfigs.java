@@ -7,12 +7,11 @@ import java.util.*;
 public class SimulationConfigs {
     public static SimulationConfigs instance = new SimulationConfigs();
 
-    private final int rooms = 5;
     private int reviewTime;
     private int firstFloorMaxCapacity;
     private int basementFloorMaxCapacity;
-    private int firstFloorStartCapacity;
-    private int basementFloorStartCapacity;
+    private int firstFloorStartUnits;
+    private int basementFloorStartUnits;
     private ProbabilityDistribution occupiedRoomsDistribution;
     private ProbabilityDistribution orderLeadTimeDistribution;
     private ProbabilityDistribution roomConsumptionDistribution;
@@ -25,17 +24,13 @@ public class SimulationConfigs {
         reviewTime = 5;
         firstFloorMaxCapacity = 15;
         basementFloorMaxCapacity = 50;
-        firstFloorStartCapacity = 8;
-        basementFloorStartCapacity = 40;
+        firstFloorStartUnits = 8;
+        basementFloorStartUnits = 40;
 
         occupiedRoomsDistribution = new ProbabilityDistribution(getDefaultOccupiedRoomsProbabilities());
         orderLeadTimeDistribution = new ProbabilityDistribution(getDefaultOrderLeadTimeProbabilities());
         roomConsumptionDistribution = new ProbabilityDistribution(getDefaultRoomConsumptionProbabilities());
 
-    }
-
-    public int getRooms() {
-        return rooms;
     }
 
     public int getReviewTime() {
@@ -74,20 +69,20 @@ public class SimulationConfigs {
         return roomConsumptionDistribution;
     }
 
-    public int getBasementFloorStartCapacity() {
-        return basementFloorStartCapacity;
+    public int getBasementFloorStartUnits() {
+        return basementFloorStartUnits;
     }
 
-    public void setBasementFloorStartCapacity(int basementFloorStartCapacity) {
-        this.basementFloorStartCapacity = basementFloorStartCapacity;
+    public void setBasementFloorStartUnits(int basementFloorStartUnits) {
+        this.basementFloorStartUnits = basementFloorStartUnits;
     }
 
-    public int getFirstFloorStartCapacity() {
-        return firstFloorStartCapacity;
+    public int getFirstFloorStartUnits() {
+        return firstFloorStartUnits;
     }
 
-    public void setFirstFloorStartCapacity(int firstFloorStartCapacity) {
-        this.firstFloorStartCapacity = firstFloorStartCapacity;
+    public void setFirstFloorStartUnits(int firstFloorStartUnits) {
+        this.firstFloorStartUnits = firstFloorStartUnits;
     }
 
     public void setOccupiedRoomsProbabilities(Map<Integer, Double> probabilities) {
