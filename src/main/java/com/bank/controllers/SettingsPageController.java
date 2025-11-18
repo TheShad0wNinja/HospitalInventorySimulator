@@ -1,18 +1,15 @@
 package com.bank.controllers;
 
-import com.bank.models.EmployeeData;
 import com.bank.simulation.SimulationConfigs;
 import com.bank.ui.pages.SettingsPage;
 
 import javax.swing.*;
 import java.util.*;
 
-import static com.bank.models.ServiceType.CASH;
-import static com.bank.models.ServiceType.SERVICE;
-
 public class SettingsPageController {
     private final SettingsPage view;
     private final SimulationConfigs configs;
+    private Map<String, JTextField> parameters;
 
     public SettingsPageController(SettingsPage view) {
         this.view = view;
@@ -23,105 +20,42 @@ public class SettingsPageController {
     }
 
     public void loadParams() {
-        view.setGeneralConfigField("outdoorQueueSize", String.valueOf(configs.getOutdoorQueueCapacity()));
-        view.setGeneralConfigField("cashCustomerProp", String.valueOf(configs.getCashCustomerProbability()));
-        view.setGeneralConfigField("numOutdoorTellers", String.valueOf(configs.getOutdoorCashEmployeesData().size()));
-        view.setGeneralConfigField("numIndoorTellers", String.valueOf(configs.getIndoorCashEmployeesData().size()));
-        view.setGeneralConfigField("numIndoorServiceEmp", String.valueOf(configs.getIndoorServiceEmployeesData().size()));
+        view.clearData();
 
+        view.setOccupiedRoomsTable(configs.getOccupiedRoomsDistribution().getProbabilities());
+        view.setOrderLeadTimeTable(configs.getOrderLeadTimeDistribution().getProbabilities());
+        view.setRoomConsumptionTable(configs.getRoomConsumptionDistribution().getProbabilities());
 
-        view.clearTables();
-
-        view.setTimeBetweenArrivalsTable(configs.getTimeBetweenArrivalProbabilities());
-
-        int outdoorTellerCount = 0;
-        for (EmployeeData employeeData : configs.getOutdoorCashEmployeesData()) {
-            view.addEmployeeTable("outdoor_teller_" + outdoorTellerCount++, employeeData);
-        }
-
-        int indoorTellerCount = 0;
-        for (EmployeeData employeeData : configs.getIndoorCashEmployeesData()) {
-            view.addEmployeeTable("indoor_teller_" + indoorTellerCount++, employeeData);
-        }
-
-        int indoorServiceCount = 0;
-        for (EmployeeData employeeData : configs.getIndoorServiceEmployeesData()) {
-            view.addEmployeeTable("indoor_service_" + indoorServiceCount++, employeeData);
-        }
+        parameters = view.addParameters(new String[][]{
+                {"firstFloorCapacity", "First Floor Capacity", String.valueOf(configs.getFirstFloorCapacity())},
+                {"basementFloorCapacity", "Basement Floor Capacity", String.valueOf(configs.getBasementFloorCapacity())},
+                {"reviewTime", "Review Time", String.valueOf(configs.getReviewTime())},
+        });
     }
 
     public void saveParams() {
         try {
-            int outdoorQueueSize = getIntValue("outdoorQueueSize");
-            int numOutdoorTellers = getIntValue("numOutdoorTellers");
-            int numIndoorTellers = getIntValue("numIndoorTellers");
-            int numIndoorServiceEmp = getIntValue("numIndoorServiceEmp");
-            double cashCustomerProp = getDoubleValue("cashCustomerProp");
+            int firstFloorCapacity = getIntValue("firstFloorCapacity");
+            int basementFloorCapacity = getIntValue("basementFloorCapacity");
+            int reviewTime = getIntValue("reviewTime");
 
-            if (outdoorQueueSize < 0 || numOutdoorTellers < 0 ||
-                    numIndoorTellers < 0 || numIndoorServiceEmp < 0 || cashCustomerProp < 0) {
+            if (firstFloorCapacity < 0 || basementFloorCapacity < 0 || reviewTime < 0) {
                 showError("All values must be non-negative numbers");
                 return;
             }
 
-            configs.setOutdoorQueueCapacity(outdoorQueueSize);
-            configs.setCashCustomerProbability(cashCustomerProp);
+            configs.setFirstFloorCapacity(firstFloorCapacity);
+            configs.setBasementFloorCapacity(basementFloorCapacity);
+            configs.setReviewTime(reviewTime);
 
-            configs.setTimeBetweenArrivalProbabilities(extractProbabilitiesFromTable(view.getTimeBetweenArrivalsTable().getTableData()));
+            var occupiedRoomProbabilities = extractProbabilitiesFromTable(view.getOccupiedRoomsTable().getTableData());
+            var orderLeadTimeProbabilities = extractProbabilitiesFromTable(view.getOrderLeadTimeTable().getTableData());
+            var roomConsumptionProbabilities = extractProbabilitiesFromTable(view.getRoomConsumptionTable().getTableData());
 
-            List<EmployeeData> newEmployeeData = new ArrayList<>();
-
-            var tables = view.getAllEmployeeTables();
-
-            for (int i = 0; i < numOutdoorTellers; i++) {
-                String key = "outdoor_teller_" + i;
-
-                Map<Integer, Double> serviceTimes = configs.getDefaultTellerProbability();
-                if (tables.containsKey(key)) {
-                    serviceTimes = extractProbabilitiesFromTable(tables.get(key).getTableData());
-                }
-
-                newEmployeeData.add(new EmployeeData(
-                        EmployeeData.Area.OUTDOOR,
-                        CASH,
-                        key,
-                        serviceTimes
-                ));
-            }
-
-            for (int i = 0; i < numIndoorTellers; i++) {
-                String key = "indoor_teller_" + i;
-
-                Map<Integer, Double> serviceTimes = configs.getDefaultTellerProbability();
-                if (tables.containsKey(key)) {
-                    serviceTimes = extractProbabilitiesFromTable(tables.get(key).getTableData());
-                }
-
-                newEmployeeData.add(new EmployeeData(
-                        EmployeeData.Area.INDOOR,
-                        CASH,
-                        key,
-                        serviceTimes
-                ));
-            }
-
-            for (int i = 0; i < numIndoorServiceEmp; i++) {
-                String key = "indoor_service_" + i;
-
-                Map<Integer, Double> serviceTimes = configs.getDefaultServiceEmployeeProbability();
-                if (tables.containsKey(key)) {
-                    serviceTimes = extractProbabilitiesFromTable(tables.get(key).getTableData());
-                }
-
-                newEmployeeData.add(new EmployeeData(
-                        EmployeeData.Area.INDOOR,
-                        SERVICE,
-                        key,
-                        serviceTimes
-                ));
-            }
-
-            configs.setEmployees(newEmployeeData);
+            configs.setOccupiedRoomsProbabilities(occupiedRoomProbabilities);
+            configs.setOrderLeadTimeProbabilities(orderLeadTimeProbabilities);
+            configs.setRoomConsumptionProbabilities(roomConsumptionProbabilities);
+            configs.setReviewTime(reviewTime);
 
             showSuccess("Settings saved successfully!");
 
@@ -167,7 +101,7 @@ public class SettingsPageController {
     }
 
     private double getDoubleValue(String key) throws NumberFormatException {
-        String value = view.getGeneralConfigField(key);
+        String value = parameters.get(key).getText();
         if (value == null || value.trim().isEmpty()) return 0.0;
         try {
             return Double.parseDouble(value.trim());
@@ -177,7 +111,8 @@ public class SettingsPageController {
     }
 
     private int getIntValue(String key) throws NumberFormatException {
-        String value = view.getGeneralConfigField(key);
+        System.out.println(key + " + " + parameters);
+        var value = parameters.get(key).getText();
         if (value == null || value.trim().isEmpty()) {
             return 0;
         }

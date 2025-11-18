@@ -53,7 +53,7 @@ public class SimulationPage extends JPanel {
 
         add(content, BorderLayout.CENTER);
 
-        new SimulationPageController(this);
+//        new SimulationPageController(this);
     }
 
     private JButton prepareSimulationStartButton() {

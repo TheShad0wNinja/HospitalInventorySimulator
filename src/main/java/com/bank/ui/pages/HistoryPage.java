@@ -1,7 +1,6 @@
 package com.bank.ui.pages;
 
 import com.bank.controllers.HistoryPageController;
-import com.bank.models.SimulationHistoryRecord;
 import com.bank.ui.Theme;
 import com.bank.ui.components.ThemeButton;
 import com.bank.ui.components.ThemePanel;
@@ -47,9 +46,9 @@ public class HistoryPage extends JPanel {
         controller = new HistoryPageController(this);
     }
 
-    public void refresh() {
-        controller.loadHistory();
-    }
+//    public void refresh() {
+//        controller.loadHistory();
+//    }
 
     public void clearHistory() {
         historyListPanel.removeAll();
@@ -66,43 +65,43 @@ public class HistoryPage extends JPanel {
         historyListPanel.repaint();
     }
 
-    public void addHistoryItem(String label, SimulationHistoryRecord record) {
-        ThemePanel itemPanel = new ThemePanel();
-        itemPanel.setLayout(new BorderLayout());
-        itemPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.BORDER),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
-        itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        itemPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+//    public void addHistoryItem(String label, SimulationHistoryRecord record) {
+//        ThemePanel itemPanel = new ThemePanel();
+//        itemPanel.setLayout(new BorderLayout());
+//        itemPanel.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createLineBorder(Theme.BORDER),
+//                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+//        ));
+//        itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+//        itemPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+//
+//        JLabel itemLabel = new JLabel(label);
+//        itemLabel.setFont(Theme.DEFAULT_FONT.deriveFont(Font.PLAIN, 16f));
+//        itemLabel.setForeground(Theme.TEXT_PRIMARY);
+//        itemPanel.add(itemLabel, BorderLayout.CENTER);
+//
+//        JPanel buttonPanel = prepareButtonRow(record);
+//
+//        itemPanel.add(buttonPanel, BorderLayout.EAST);
+//
+//        historyListPanel.add(itemPanel);
+//        historyListPanel.add(Box.createVerticalStrut(10));
+//        historyListPanel.revalidate();
+//        historyListPanel.repaint();
+//    }
 
-        JLabel itemLabel = new JLabel(label);
-        itemLabel.setFont(Theme.DEFAULT_FONT.deriveFont(Font.PLAIN, 16f));
-        itemLabel.setForeground(Theme.TEXT_PRIMARY);
-        itemPanel.add(itemLabel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = prepareButtonRow(record);
-
-        itemPanel.add(buttonPanel, BorderLayout.EAST);
-
-        historyListPanel.add(itemPanel);
-        historyListPanel.add(Box.createVerticalStrut(10));
-        historyListPanel.revalidate();
-        historyListPanel.repaint();
-    }
-
-    private JPanel prepareButtonRow(SimulationHistoryRecord record) {
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonPanel.setBackground(Theme.PANEL_BG);
-
-        ThemeButton viewButton = new ThemeButton("View Details", ThemeButton.Variant.PRIMARY);
-        viewButton.addActionListener(e -> controller.showHistoryDetail(record));
-
-        ThemeButton deleteButton = new ThemeButton("Delete", ThemeButton.Variant.DEFAULT);
-        deleteButton.addActionListener(e -> controller.deleteHistory(record));
-
-        buttonPanel.add(viewButton);
-        buttonPanel.add(deleteButton);
-        return buttonPanel;
-    }
+//    private JPanel prepareButtonRow(SimulationHistoryRecord record) {
+//        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+//        buttonPanel.setBackground(Theme.PANEL_BG);
+//
+//        ThemeButton viewButton = new ThemeButton("View Details", ThemeButton.Variant.PRIMARY);
+//        viewButton.addActionListener(e -> controller.showHistoryDetail(record));
+//
+//        ThemeButton deleteButton = new ThemeButton("Delete", ThemeButton.Variant.DEFAULT);
+//        deleteButton.addActionListener(e -> controller.deleteHistory(record));
+//
+//        buttonPanel.add(viewButton);
+//        buttonPanel.add(deleteButton);
+//        return buttonPanel;
+//    }
 }

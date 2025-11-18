@@ -1,33 +1,24 @@
 package com.bank.ui.pages;
 
 import com.bank.controllers.SettingsPageController;
-import com.bank.models.EmployeeData;
 import com.bank.ui.Theme;
 import com.bank.ui.components.*;
-import com.bank.utils.TextUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SettingsPage extends JPanel {
-    private final Map<String, JTextField> generalConfigs = new HashMap<>();
-    private static final String[][] generalConfigLabels = new String[][]{
-            {"outdoorQueueSize", "Outdoor Queue Size"},
-            {"cashCustomerProp", "Probability of Cash Customer"},
-            {"numOutdoorTellers", "Number of Outdoor Tellers"},
-            {"numIndoorTellers", "Number of Indoor Tellers"},
-            {"numIndoorServiceEmp", "Number of Indoor Service Employees"},
-    };
-
+private final Map<String, JTextField> generalConfigs = new HashMap<>();
     private JPanel distributionsPanel;
-    private final Map<String, ProbabilitiesTable> employeeTables = new HashMap<>();
-    private ProbabilitiesTable timeBetweenArrivalsTable;
+    private ProbabilitiesTable occupiedRoomsTable;
+    private ProbabilitiesTable orderLeadTimeTable;
+    private ProbabilitiesTable roomConsumptionTable;
 
     private JButton saveBtn;
     private JButton resetBtn;
+    private JPanel paramsPanel;
 
     public SettingsPage() {
         setLayout(new BorderLayout());
@@ -101,25 +92,14 @@ public class SettingsPage extends JPanel {
 
     private JPanel prepareGeneralSettingsPanel() {
         ThemePanel panel = new ThemePanel();
-        panel.setLayout(new GridLayout(0, 2, 20, 10));
+        panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        for (String[] configLabel : generalConfigLabels) {
-            JPanel cell = new JPanel(new BorderLayout(5, 5));
-            cell.setBackground(Theme.PANEL_BG);
+        paramsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        paramsPanel.setBackground(Theme.PANEL_BG);
 
-            JLabel label = new JLabel(configLabel[1]);
-            label.setFont(Theme.DEFAULT_FONT);
-            label.setForeground(Theme.TEXT_PRIMARY);
-            cell.add(label, BorderLayout.NORTH);
-
-            ThemeTextField field = new ThemeTextField(25);
-            generalConfigs.put(configLabel[0], field);
-            cell.add(field, BorderLayout.CENTER);
-
-            panel.add(cell);
-        }
+        panel.add(paramsPanel, BorderLayout.CENTER);
 
         return panel;
     }
@@ -165,54 +145,73 @@ public class SettingsPage extends JPanel {
         distributionsPanel.repaint();
     }
 
-    public void setGeneralConfigField(String key, String value) {
-        JTextField field = generalConfigs.get(key);
-        if (field != null) {
-            field.setText(value);
+
+    public Map<String, JTextField> addParameters(String[][] parameters) {
+        paramsPanel.removeAll();
+        Map<String, JTextField> map = new HashMap<>();
+
+        for (String[] entry : parameters) {
+            JPanel panel = new JPanel(new BorderLayout(5, 5));
+            panel.setBackground(Theme.PANEL_BG);
+
+            JLabel label = new JLabel(entry[1]);
+            label.setFont(Theme.DEFAULT_FONT);
+            label.setForeground(Theme.TEXT_PRIMARY);
+            panel.add(label, BorderLayout.NORTH);
+
+            ThemeTextField textField = new ThemeTextField(25);
+            textField.setText(entry[2]);
+            map.put(entry[0], textField);
+            panel.add(textField, BorderLayout.CENTER);
+
+            paramsPanel.add(panel);
         }
+
+        paramsPanel.revalidate();
+        paramsPanel.repaint();
+
+        return map;
     }
 
-    public String getGeneralConfigField(String key) {
-        JTextField field = generalConfigs.get(key);
-        return field != null ? field.getText() : "";
-    }
+    public void clearData() {
+        occupiedRoomsTable = null;
+        orderLeadTimeTable = null;
+        roomConsumptionTable = null;
 
-    public void clearTables() {
-        employeeTables.clear();
-        timeBetweenArrivalsTable = null;
         distributionsPanel.removeAll();
         distributionsPanel.revalidate();
         distributionsPanel.repaint();
+
+        paramsPanel.removeAll();
+        paramsPanel.revalidate();
+        paramsPanel.repaint();
     }
 
-    public void setTimeBetweenArrivalsTable(Map<Integer, Double> probabilities) {
-        timeBetweenArrivalsTable = new ProbabilitiesTable(probabilities);
-        addDistributionTable("Time Between Arrivals", timeBetweenArrivalsTable);
+    public void setOccupiedRoomsTable(Map<Integer, Double> probabilities) {
+        occupiedRoomsTable = new ProbabilitiesTable(probabilities);
+        addDistributionTable("Number of Occupied Rooms", occupiedRoomsTable);
     }
 
-    public void addEmployeeTable(String employeeKey, EmployeeData employeeData) {
-        if (!employeeTables.containsKey(employeeKey)) {
-            String employeeLabel = TextUtils.capitalize(
-                    String.join(" ",
-                            Arrays.stream(employeeKey.split("_"))
-                                    .map(str ->
-                                            str.matches("-?\\d+(\\.\\d+)?")
-                                                    ? String.valueOf(Integer.parseInt(str) + 1)
-                                                    : str
-                                    ).toList()));
-
-            ProbabilitiesTable table = new ProbabilitiesTable(employeeData.getServiceTimeProbabilities());
-            employeeTables.put(employeeKey, table);
-            addDistributionTable(employeeLabel, table);
-        }
+    public void setOrderLeadTimeTable(Map<Integer, Double> probabilities) {
+        orderLeadTimeTable = new ProbabilitiesTable(probabilities);
+        addDistributionTable("Order Lead Times", orderLeadTimeTable);
     }
 
-    public ProbabilitiesTable getTimeBetweenArrivalsTable() {
-        return timeBetweenArrivalsTable;
+    public void setRoomConsumptionTable(Map<Integer, Double> probabilities) {
+        roomConsumptionTable = new ProbabilitiesTable(probabilities);
+        addDistributionTable("Room Consumption", roomConsumptionTable);
     }
 
-    public Map<String, ProbabilitiesTable> getAllEmployeeTables() {
-        return new HashMap<>(employeeTables);
+    public ProbabilitiesTable getRoomConsumptionTable() {
+        return roomConsumptionTable;
+    }
+
+    public ProbabilitiesTable getOccupiedRoomsTable() {
+        return occupiedRoomsTable;
+    }
+
+    public ProbabilitiesTable getOrderLeadTimeTable() {
+        return orderLeadTimeTable;
     }
 
     public void setSaveButtonAction(java.awt.event.ActionListener action) {
