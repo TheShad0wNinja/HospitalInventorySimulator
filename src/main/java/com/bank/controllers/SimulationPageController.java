@@ -1,48 +1,48 @@
 package com.bank.controllers;
 
-import com.bank.models.*;
 import com.bank.simulation.Simulator;
-import com.bank.simulation.SimulationConfigs;
-import com.bank.ui.components.SimulationEventsTable;
-import com.bank.ui.components.SimulationStatisticsTable;
 import com.bank.ui.pages.SimulationPage;
 
 import javax.swing.*;
 import java.util.*;
 
-import static com.bank.utils.SimulationVisualization.*;
-
 public class SimulationPageController {
-//    private final SimulationPage view;
-//    private final Simulator simulator;
+    private final SimulationPage view;
+    private final Simulator simulator;
 //    private final SimulationHistoryStorage historyStorage = new SimulationHistoryStorage();
-//    private Map<String, JTextField> simulationParamFields;
+    private Map<String, JTextField> parameters;
 //    private final SimulationEventsTable simulationEventsTable = new SimulationEventsTable();
 //    private final SimulationStatisticsTable firstRunStatsTable = new SimulationStatisticsTable();
 //    private final SimulationStatisticsTable firstBatchStatsTable = new SimulationStatisticsTable();
 //    private final SimulationStatisticsTable totalStatsTable = new SimulationStatisticsTable();
 //
-//    public SimulationPageController(SimulationPage view) {
-//        this.view = view;
-//        this.simulator = new Simulator();
+    public SimulationPageController(SimulationPage view) {
+        this.view = view;
+        this.simulator = new Simulator();
 //        this.simulator.addListener(new EventPrinter(simulationEventsTable));
-//
-//        loadParams();
-//        setupActions();
-//    }
-//
-//    private void loadParams() {
-//        simulationParamFields = view.addSimulationParameter(new LinkedHashMap<>(){{
-//            put("simulation_days", "Simulation Days");
-//            put("simulation_customers", "Customers per Day");
-//            put("simulation_repetition", "Simulation Repetition");
-//        }});
-//    }
-//
-//    private void startSimulation() {
-//        view.clearSimulationResults();
+
+        loadParams();
+        setupActions();
+    }
+
+    private void loadParams() {
+        parameters = view.addParameters(new String[][]{
+                {"simulationDays", "Simulation Days", "10"},
+                {"simulationRuns", "Simulation Runs", "10"},
+                {"simulationReruns", "Simulation Reruns", "10"}
+        });
+    }
+
+    private void startSimulation() {
+        view.clearSimulationResults();
+
+        simulator.setSimulationDays(Integer.parseInt(parameters.get("simulationDays").getText()));
+        simulator.setSimulationRuns(Integer.parseInt(parameters.get("simulationRuns").getText()));
+        simulator.setSimulationReruns(Integer.parseInt(parameters.get("simulationReruns").getText()));
+
+        simulator.startSimulation();
 //        simulationEventsTable.clearEvents();
-//
+
 //        simulator.setSimulationCustomersCount(Integer.parseInt(simulationParamFields.get("simulation_customers").getText()));
 //        simulator.setSimulationDays(Integer.parseInt(simulationParamFields.get("simulation_days").getText()));
 //        simulator.setSimulationRetries(Integer.parseInt(simulationParamFields.get("simulation_repetition").getText()));
@@ -72,8 +72,8 @@ public class SimulationPageController {
 //        view.showResults();
 //        saveSimulationHistory();
 //        showSuccessMessage("Simulation Finished!");
-//    }
-//
+    }
+
 //    private void saveSimulationHistory() {
 //        try {
 //            Object[][] eventsData = simulationEventsTable.getTableData();
@@ -147,12 +147,12 @@ public class SimulationPageController {
 //            System.err.println("Failed to save simulation history: " + e.getMessage());
 //        }
 //    }
-//
-//    private void setupActions() {
-//        view.setStartButtonAction(action -> startSimulation());
-//    }
-//
-//    public void showSuccessMessage(String message) {
-//        JOptionPane.showMessageDialog(view, message, "Success", JOptionPane.INFORMATION_MESSAGE);
-//    }
+
+    private void setupActions() {
+        view.setStartButtonAction(action -> startSimulation());
+    }
+
+    public void showSuccessMessage(String message) {
+        JOptionPane.showMessageDialog(view, message, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
 }
