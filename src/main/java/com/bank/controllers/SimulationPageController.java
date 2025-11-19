@@ -29,7 +29,6 @@ public class SimulationPageController {
         parameters = view.addParameters(new String[][]{
                 {"simulationDays", "Simulation Days", "10"},
                 {"simulationRuns", "Simulation Runs", "10"},
-                {"simulationReruns", "Simulation Reruns", "10"}
         });
     }
 
@@ -38,7 +37,6 @@ public class SimulationPageController {
 
         simulator.setSimulationDays(Integer.parseInt(parameters.get("simulationDays").getText()));
         simulator.setSimulationRuns(Integer.parseInt(parameters.get("simulationRuns").getText()));
-        simulator.setSimulationReruns(Integer.parseInt(parameters.get("simulationReruns").getText()));
 
         simulator.startSimulation();
 //        simulationEventsTable.clearEvents();

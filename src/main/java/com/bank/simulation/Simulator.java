@@ -9,7 +9,6 @@ public class Simulator {
     private final SimulationConfigs configs;
     private int simulationDays;
     private int simulationRuns;
-    private int simulationReruns;
 
     private int reviewTime;
     private int firstFloorMaxCapacity;
@@ -26,6 +25,7 @@ public class Simulator {
     private SimulationStatistics totalStats;
 
     private SimulationStatistics currentStats;
+    private SimulationState state;
 
     public Simulator() {
         configs = SimulationConfigs.instance;
@@ -78,62 +78,61 @@ public class Simulator {
     }
 
     private void runSingleSimulation() {
-        int firstFloorUnits = firstFloorStartUnits;
-        int basementFloorUnits = basementFloorStartUnits;
-        int daysTillReview = reviewTime;
-
-        boolean hasOrder = false;
-        int timeTillDelivery = -1;
-        int orderSize = 0;
+        resetStats();
 
         for(int day = 1; day <= simulationDays; day++) {
-            if (hasOrder && timeTillDelivery < 0) {
-                hasOrder = false;
-                basementFloorUnits = Math.max(basementFloorUnits + orderSize, basementFloorMaxCapacity);
-                timeTillDelivery = -1;
-                System.out.println("Day " + day + ": Delivery of " + orderSize + "arrived");
+            if (state.orderState.hasOrder && state.orderState.timeTillDelivery < 0) {
+                state.orderState.hasOrder = false;
+                state.inventory.basementFloorUnits = Math.min(state.inventory.basementFloorUnits + state.orderState.orderSize, basementFloorMaxCapacity);
+                System.out.println("Day " + day + ": Delivery of " + state.orderState.orderSize + "arrived");
             }
 
-            int demand = getDemand();
-            System.out.print("Day " + day + ": Demand: " + demand + " Start FF:" + firstFloorUnits + " Start B:" + basementFloorUnits);
+            updateCurrentDemand();
 
-            int consumed = Math.min(demand, firstFloorUnits);
-            int shortage = demand - consumed;
-            firstFloorUnits = firstFloorUnits - consumed;
+            System.out.print("Day " + day + ": Demand: " + state.demandState.currentDemand + " Start FF:" + state.inventory.firstFloorUnits + " Start B:" + state.inventory.basementFloorUnits);
 
-            // Transfer
-            if (firstFloorUnits == 0) {
-                firstFloorUnits += Math.min(basementFloorUnits, firstFloorMaxCapacity);
-                basementFloorUnits -= Math.min(basementFloorUnits, firstFloorMaxCapacity);
+            int consumed = Math.min(state.demandState.currentDemand, state.inventory.firstFloorUnits);
+            int shortage = state.demandState.currentDemand - consumed;
+            state.inventory.firstFloorUnits -= consumed;
 
-                consumed += Math.min(shortage, firstFloorUnits);
-                firstFloorUnits -= Math.min(shortage, firstFloorUnits);
+            if (state.inventory.firstFloorUnits == 0) {
+                state.inventory.firstFloorUnits += Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
+                state.inventory.basementFloorUnits -= Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
 
-                shortage = demand - consumed;
+                consumed += Math.min(shortage, state.inventory.firstFloorUnits);
+                state.inventory.firstFloorUnits -= Math.min(shortage, state.inventory.firstFloorUnits);
+
+                shortage = state.demandState.currentDemand - consumed;
             }
 
+            if (state.orderState.hasOrder)
+                state.orderState.timeTillDelivery--;
 
-
-            if (hasOrder)
-                timeTillDelivery--;
-
-            daysTillReview--;
-            if (daysTillReview == 0) {
-                timeTillDelivery = getLeadTime();
-                orderSize = basementFloorMaxCapacity - basementFloorUnits;
-                hasOrder = true;
-                daysTillReview = reviewTime;
+            state.reviewState.timeTillReview--;
+            if (state.reviewState.timeTillReview == 0) {
+                scheduleOrder();
+                state.orderState.orderSize = basementFloorMaxCapacity - state.inventory.basementFloorUnits;
+                state.orderState.hasOrder = true;
+                state.reviewState.timeTillReview = reviewTime;
             }
 
-            System.out.println(" Consumed: " + consumed + " Shortage: " + shortage + " End FF: " + firstFloorUnits + " End B: " + basementFloorUnits + " Days Till Review: " + daysTillReview);
+            System.out.println(" Consumed: " + consumed + " Shortage: " + shortage + " End FF: " + state.inventory.firstFloorUnits + " End B: " + state.inventory.basementFloorUnits + " Days Till Review: " + state.reviewState.timeTillReview);
         }
     }
 
-    private int getLeadTime() {
-        return orderLeadTimeDistribution.getProbabilityValue(rand.nextDouble());
+    private void resetStats() {
+        state = new SimulationState();
+        state.inventory.firstFloorUnits = firstFloorStartUnits;
+        state.inventory.basementFloorUnits = basementFloorStartUnits;
+        state.reviewState.timeTillReview = reviewTime;
+        state.orderState.hasOrder = false;
     }
 
-    private int getDemand() {
+    private void scheduleOrder() {
+        state.orderState.timeTillDelivery = orderLeadTimeDistribution.getProbabilityValue(rand.nextDouble());
+    }
+
+    private void updateCurrentDemand() {
         int occupiedRooms = occupiedRoomsDistribution.getProbabilityValue(rand.nextDouble());
 
         int totalDemand = 0;
@@ -142,7 +141,8 @@ public class Simulator {
             totalDemand += roomDemand;
         }
 
-        return totalDemand;
+        state.demandState.currentDemand = totalDemand;
+        state.demandState.roomsOccupied = occupiedRooms ;
     }
 
     public void setSimulationDays(int simulationDays) {
@@ -151,10 +151,6 @@ public class Simulator {
 
     public void setSimulationRuns(int simulationRuns) {
         this.simulationRuns = simulationRuns;
-    }
-
-    public void setSimulationReruns(int simulationReruns) {
-        this.simulationReruns = simulationReruns;
     }
 
     //    private void printEvent(SimulationEventRecord.Type type, SimulationEvent event, String description) {
