@@ -1,6 +1,6 @@
 package com.bank.ui.components;
 
-import com.bank.simulation.SimulationStatistics;
+import com.bank.simulation.SimulationData;
 import com.bank.ui.Theme;
 
 import javax.swing.*;
@@ -85,9 +85,9 @@ public class SimulationStatisticsTable extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    public void setStatistics(ArrayList<SimulationStatistics.Statistic> statistics) {
+    public void setStatistics(ArrayList<SimulationData.Statistic> statistics) {
         clearStatistics();
-        for (SimulationStatistics.Statistic stat : statistics) {
+        for (SimulationData.Statistic stat : statistics) {
             tableModel.addRow(new Object[]{stat.label(), stat.value()});
         }
         JScrollBar bar = ((JScrollPane) getComponent(0)).getVerticalScrollBar();

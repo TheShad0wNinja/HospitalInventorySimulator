@@ -20,12 +20,12 @@ public class Simulator {
     private ProbabilityDistribution roomConsumptionDistribution;
 
 
-    private SimulationStatistics firstRunStats;
-    private SimulationStatistics firstBatchStats;
-    private SimulationStatistics totalStats;
+    private SimulationData firstRunStats;
+    private SimulationData firstBatchStats;
+    private SimulationData totalStats;
 
-    private SimulationStatistics currentStats;
     private SimulationState state;
+    private List<SimulationData> simulationData;
 
     public Simulator() {
         configs = SimulationConfigs.instance;
@@ -40,56 +40,35 @@ public class Simulator {
         occupiedRoomsDistribution = configs.getOccupiedRoomsDistribution();
         orderLeadTimeDistribution = configs.getOrderLeadTimeDistribution();
         roomConsumptionDistribution = configs.getRoomConsumptionDistribution();
+        simulationData = new ArrayList<>();
 
-//        for (int reruns = 0; reruns < simulationReruns; reruns++) {
-//            for (int runs = 0; runs < simulationRuns; runs++) {
-        runSingleSimulation();
-//            }
-//        }
+        for (int runs = 0; runs < simulationRuns; runs++) {
+            runSingleSimulation(runs == 0);
+        }
 
-//        totalStats = new SimulationStatistics();
-//        firstRunStats = null;
-//        firstBatchStats = null;
-
-//        for (int batch = 0; batch < simulationRetries; batch++) {
-//            for (int day = 0; day < simulationDays; day++) {
-//                if (batch == 0 && day == 0) {
-//                    shouldDispatchEvent = true;
-//                    runSingleSimulation();
-//                    shouldDispatchEvent = false;
-//                    firstRunStats = currentStats;
-//                } else {
-//                    runSingleSimulation();
-//                }
-//                totalStats.merge(currentStats);
-//            }
-//            if (batch == 0) {
-//                firstBatchStats = currentStats;
-//            }
-//        }
-//
-//        if (firstRunStats != null) {
-//            firstRunStats.calculateStatistics();
-//        }
-//        if (firstBatchStats != null) {
-//            firstBatchStats.calculateStatistics();
-//        }
-//        totalStats.calculateStatistics();
+        System.out.println("Simulation completed.");
+        System.out.println(SimulationData.calculateStatistics(simulationData));
     }
 
-    private void runSingleSimulation() {
-        resetStats();
+    private void runSingleSimulation(boolean shouldPrint) {
+        resetState();
+
+        SimulationData data = new SimulationData();
+        data.totalDays = simulationDays;
 
         for(int day = 1; day <= simulationDays; day++) {
             if (state.orderState.hasOrder && state.orderState.timeTillDelivery < 0) {
                 state.orderState.hasOrder = false;
                 state.inventory.basementFloorUnits = Math.min(state.inventory.basementFloorUnits + state.orderState.orderSize, basementFloorMaxCapacity);
-                System.out.println("Day " + day + ": Delivery of " + state.orderState.orderSize + "arrived");
+                if(shouldPrint)
+                    System.out.println("Day " + day + ": Delivery of " + state.orderState.orderSize + "arrived");
             }
 
             updateCurrentDemand();
 
-            System.out.print("Day " + day + ": Demand: " + state.demandState.currentDemand + " Start FF:" + state.inventory.firstFloorUnits + " Start B:" + state.inventory.basementFloorUnits);
+            data.totalDemand += state.demandState.currentDemand;
+            if (shouldPrint)
+                System.out.print("Day " + day + ": Demand: " + state.demandState.currentDemand + " Start FF:" + state.inventory.firstFloorUnits + " Start B:" + state.inventory.basementFloorUnits);
 
             int consumed = Math.min(state.demandState.currentDemand, state.inventory.firstFloorUnits);
             int shortage = state.demandState.currentDemand - consumed;
@@ -103,6 +82,11 @@ public class Simulator {
                 state.inventory.firstFloorUnits -= Math.min(shortage, state.inventory.firstFloorUnits);
 
                 shortage = state.demandState.currentDemand - consumed;
+
+                if (shortage > 0) {
+                    data.totalShortageDays++;
+                    data.totalShortageAmount += shortage;
+                }
             }
 
             if (state.orderState.hasOrder)
@@ -110,17 +94,28 @@ public class Simulator {
 
             state.reviewState.timeTillReview--;
             if (state.reviewState.timeTillReview == 0) {
+                data.totalOrders++;
                 scheduleOrder();
+
                 state.orderState.orderSize = basementFloorMaxCapacity - state.inventory.basementFloorUnits;
+                data.totalOrderSize += state.orderState.orderSize;
+                data.totalLeadTime += state.orderState.timeTillDelivery;
                 state.orderState.hasOrder = true;
                 state.reviewState.timeTillReview = reviewTime;
+
             }
 
-            System.out.println(" Consumed: " + consumed + " Shortage: " + shortage + " End FF: " + state.inventory.firstFloorUnits + " End B: " + state.inventory.basementFloorUnits + " Days Till Review: " + state.reviewState.timeTillReview);
+            data.firstFloorEndUnits.add(state.inventory.firstFloorUnits);
+            data.basementFloorEndUnits.add(state.inventory.basementFloorUnits);
+
+            if(shouldPrint)
+                System.out.println(" Consumed: " + consumed + " Shortage: " + shortage + " End FF: " + state.inventory.firstFloorUnits + " End B: " + state.inventory.basementFloorUnits + " Days Till Review: " + state.reviewState.timeTillReview);
         }
+
+        simulationData.add(data);
     }
 
-    private void resetStats() {
+    private void resetState() {
         state = new SimulationState();
         state.inventory.firstFloorUnits = firstFloorStartUnits;
         state.inventory.basementFloorUnits = basementFloorStartUnits;

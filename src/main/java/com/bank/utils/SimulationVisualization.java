@@ -1,6 +1,6 @@
 package com.bank.utils;
 
-import com.bank.simulation.SimulationStatistics.Statistic;
+import com.bank.simulation.SimulationData.Statistic;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;

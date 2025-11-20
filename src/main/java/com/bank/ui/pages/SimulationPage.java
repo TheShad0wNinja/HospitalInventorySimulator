@@ -69,7 +69,7 @@ public class SimulationPage extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        paramsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        paramsPanel = new JPanel(new GridLayout(0, 1, 10, 10));
         paramsPanel.setBackground(Theme.PANEL_BG);
 
         panel.add(paramsPanel, BorderLayout.CENTER);
@@ -136,7 +136,7 @@ public class SimulationPage extends JPanel {
             label.setForeground(Theme.TEXT_PRIMARY);
             panel.add(label, BorderLayout.NORTH);
 
-            ThemeTextField textField = new ThemeTextField(25);
+            ThemeTextField textField = new ThemeTextField(10);
             textField.setText(entry[2]);
             map.put(entry[0], textField);
             panel.add(textField, BorderLayout.CENTER);
