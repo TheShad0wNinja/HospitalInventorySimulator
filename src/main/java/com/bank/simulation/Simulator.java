@@ -26,9 +26,14 @@ public class Simulator {
 
     private SimulationState state;
     private List<SimulationData> simulationData;
+    private SimulationEventListener eventListener;
 
     public Simulator() {
         configs = SimulationConfigs.instance;
+    }
+    
+    public void setEventListener(SimulationEventListener listener) {
+        this.eventListener = listener;
     }
 
     public void startSimulation() {
@@ -57,24 +62,32 @@ public class Simulator {
         data.totalDays = simulationDays;
 
         for(int day = 1; day <= simulationDays; day++) {
-            if (state.orderState.hasOrder && state.orderState.timeTillDelivery < 0) {
-                state.orderState.hasOrder = false;
+            if (state.orderState.hasOrder && state.orderState.timeTillDelivery == 0) {
                 state.inventory.basementFloorUnits = Math.min(state.inventory.basementFloorUnits + state.orderState.orderSize, basementFloorMaxCapacity);
-                if(shouldPrint)
-                    System.out.println("Day " + day + ": Delivery of " + state.orderState.orderSize + "arrived");
+
+                if(shouldPrint && eventListener != null) {
+                    eventListener.onDeliveryEvent(day, state.orderState.orderSize);
+                }
+
+                state.orderState.hasOrder = false;
+                state.orderState.timeTillDelivery = -1;
+                state.orderState.orderSize = -1;
             }
+
+            int firstFloorStart = state.inventory.firstFloorUnits;
+            int basementFloorStart = state.inventory.basementFloorUnits;
+            boolean didTransfer = false;
 
             updateCurrentDemand();
 
             data.totalDemand += state.demandState.currentDemand;
-            if (shouldPrint)
-                System.out.print("Day " + day + ": Demand: " + state.demandState.currentDemand + " Start FF:" + state.inventory.firstFloorUnits + " Start B:" + state.inventory.basementFloorUnits);
 
             int consumed = Math.min(state.demandState.currentDemand, state.inventory.firstFloorUnits);
             int shortage = state.demandState.currentDemand - consumed;
             state.inventory.firstFloorUnits -= consumed;
 
             if (state.inventory.firstFloorUnits == 0) {
+                didTransfer = true;
                 state.inventory.firstFloorUnits += Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
                 state.inventory.basementFloorUnits -= Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
 
@@ -102,14 +115,25 @@ public class Simulator {
                 data.totalLeadTime += state.orderState.timeTillDelivery;
                 state.orderState.hasOrder = true;
                 state.reviewState.timeTillReview = reviewTime;
-
             }
 
             data.firstFloorEndUnits.add(state.inventory.firstFloorUnits);
             data.basementFloorEndUnits.add(state.inventory.basementFloorUnits);
 
-            if(shouldPrint)
-                System.out.println(" Consumed: " + consumed + " Shortage: " + shortage + " End FF: " + state.inventory.firstFloorUnits + " End B: " + state.inventory.basementFloorUnits + " Days Till Review: " + state.reviewState.timeTillReview);
+            if(shouldPrint && eventListener != null) {
+                eventListener.onDayEvent(
+                    day,
+                    state.demandState.currentDemand,
+                    firstFloorStart,
+                    basementFloorStart,
+                    didTransfer,
+                    state.inventory.firstFloorUnits,
+                    state.inventory.basementFloorUnits,
+                    state.reviewState.timeTillReview,
+                    state.orderState.orderSize,
+                    state.orderState.timeTillDelivery
+                );
+            }
         }
 
         simulationData.add(data);
@@ -121,6 +145,8 @@ public class Simulator {
         state.inventory.basementFloorUnits = basementFloorStartUnits;
         state.reviewState.timeTillReview = reviewTime;
         state.orderState.hasOrder = false;
+        state.orderState.timeTillDelivery = -1;
+        state.orderState.orderSize = -1;
     }
 
     private void scheduleOrder() {
@@ -148,28 +174,4 @@ public class Simulator {
         this.simulationRuns = simulationRuns;
     }
 
-    //    private void printEvent(SimulationEventRecord.Type type, SimulationEvent event, String description) {
-//        SimulationEventRecord eventRecord = new SimulationEventRecord(
-//                type,
-//                event,
-//                description,
-//                indoorTellerQueue.size(),
-//                outdoorTellerQueue.size(),
-//                serviceEmployeeQueue.size(),
-//                currentTime
-//        );
-//        dispatch(eventRecord);
-//    }
-
-//    public void addListener(SimulationListener listener) {
-//        listeners.add(listener);
-//    }
-//
-//    private void dispatch(SimulationEventRecord event) {
-//        if (!shouldDispatchEvent) return;
-//
-//        for (SimulationListener listener : listeners) {
-//            listener.onEvent(event);
-//        }
-//    }
 }

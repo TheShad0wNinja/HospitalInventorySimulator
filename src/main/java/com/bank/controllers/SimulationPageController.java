@@ -1,6 +1,8 @@
 package com.bank.controllers;
 
 import com.bank.simulation.Simulator;
+import com.bank.simulation.SimulationEventListener;
+import com.bank.ui.components.SimulationEventsTable;
 import com.bank.ui.pages.SimulationPage;
 
 import javax.swing.*;
@@ -9,17 +11,37 @@ import java.util.*;
 public class SimulationPageController {
     private final SimulationPage view;
     private final Simulator simulator;
-//    private final SimulationHistoryStorage historyStorage = new SimulationHistoryStorage();
     private Map<String, JTextField> parameters;
-//    private final SimulationEventsTable simulationEventsTable = new SimulationEventsTable();
-//    private final SimulationStatisticsTable firstRunStatsTable = new SimulationStatisticsTable();
-//    private final SimulationStatisticsTable firstBatchStatsTable = new SimulationStatisticsTable();
-//    private final SimulationStatisticsTable totalStatsTable = new SimulationStatisticsTable();
-//
+    private final SimulationEventsTable simulationEventsTable = new SimulationEventsTable();
+
     public SimulationPageController(SimulationPage view) {
         this.view = view;
         this.simulator = new Simulator();
-//        this.simulator.addListener(new EventPrinter(simulationEventsTable));
+        this.simulator.setEventListener(new SimulationEventListener() {
+            @Override
+            public void onDayEvent(int day, int demand, int firstFloorStart, int basementFloorStart,
+                                 boolean didTransfer, int firstFloorEnd, int basementFloorEnd,
+                                 int daysTillReview, int orderSize, int leadTime) {
+                SwingUtilities.invokeLater(() -> {
+                    simulationEventsTable.addEventRow(
+                        day,
+                        demand,
+                        firstFloorStart,
+                        basementFloorStart,
+                        didTransfer ? "Yes" : "No",
+                        firstFloorEnd,
+                        basementFloorEnd,
+                        daysTillReview,
+                        orderSize == -1 ? "N/A" : String.valueOf(orderSize),
+                        leadTime == -1 ? "N/A" : String.valueOf(leadTime)
+                    );
+                });
+            }
+
+            @Override
+            public void onDeliveryEvent(int day, int orderSize) {
+            }
+        });
 
         loadParams();
         setupActions();
@@ -34,12 +56,16 @@ public class SimulationPageController {
 
     private void startSimulation() {
         view.clearSimulationResults();
+        simulationEventsTable.clearEvents();
 
         simulator.setSimulationDays(Integer.parseInt(parameters.get("simulationDays").getText()));
         simulator.setSimulationRuns(Integer.parseInt(parameters.get("simulationRuns").getText()));
 
         simulator.startSimulation();
-//        simulationEventsTable.clearEvents();
+        
+        view.addDataTable("First Run's Events", simulationEventsTable, 400);
+        view.showResults();
+        showSuccessMessage("Simulation Finished!");
 
 //        simulator.setSimulationCustomersCount(Integer.parseInt(simulationParamFields.get("simulation_customers").getText()));
 //        simulator.setSimulationDays(Integer.parseInt(simulationParamFields.get("simulation_days").getText()));

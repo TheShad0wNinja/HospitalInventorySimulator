@@ -18,13 +18,16 @@ public class SimulationEventsTable extends JPanel {
         setBackground(Theme.PANEL_BG);
 
         String[] columnNames = {
-                "Time",
-                "Type",
-                "Customer",
-                "Service",
-                "Employee",
-                "Queues (O|I|S)",
-                "Action"
+                "Day",
+                "Demand",
+                "First Floor Start Inventory",
+                "Basement Floor Start Inventory",
+                "Did Transfer",
+                "First Floor End Inventory",
+                "Basement Floor End Inventory",
+                "Days Till Review",
+                "Order Size",
+                "Lead Time",
         };
 
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -97,22 +100,28 @@ public class SimulationEventsTable extends JPanel {
     }
 
     public void addEventRow(
-            int time,
-            String type,
-            String customer,
-            String service,
-            String employee,
-            String queues,
-            String action
+            int day,
+            int demand,
+            int firstFloorStart,
+            int basementFloorStart,
+            String didTransfer,
+            int firstFloorEnd,
+            int basementFloorEnd,
+            int daysTillReview,
+            String orderSize,
+            String leadTime
     ) {
         tableModel.addRow(new Object[]{
-                time,
-                type,
-                customer,
-                service,
-                employee,
-                queues,
-                action
+                day,
+                demand,
+                firstFloorStart,
+                basementFloorStart,
+                didTransfer,
+                firstFloorEnd,
+                basementFloorEnd,
+                daysTillReview,
+                orderSize,
+                leadTime
         });
 
         JScrollBar bar = ((JScrollPane) getComponent(0)).getVerticalScrollBar();
