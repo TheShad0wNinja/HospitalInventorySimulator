@@ -1,6 +1,7 @@
 package com.bank.ui.pages;
 
 import com.bank.controllers.HistoryDetailPageController;
+import com.bank.models.SimulationHistoryRecord;
 import com.bank.ui.Theme;
 import com.bank.ui.components.*;
 import org.jfree.chart.ChartPanel;
@@ -15,26 +16,26 @@ public class HistoryDetailPage extends JPanel {
     private JPanel distributionsPanel;
     private JPanel resultsPanel;
 
-//    public HistoryDetailPage(SimulationHistoryRecord record) {
-//        setLayout(new BorderLayout());
-//        setBackground(Theme.BACKGROUND);
-//        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-//
-//        JPanel header = prepareHeaderPanel();
-//        add(header, BorderLayout.NORTH);
-//
-//        JTabbedPane tabbedPane = new JTabbedPane();
-//        tabbedPane.setBackground(Theme.PRIMARY_LIGHT);
-//        tabbedPane.setForeground(Theme.PRIMARY);
-//        tabbedPane.setFont(Theme.DEFAULT_FONT);
-//
-//        tabbedPane.addTab("Configuration", prepareConfigTab());
-//        tabbedPane.addTab("Results", prepareResultsTab());
-//
-//        add(tabbedPane, BorderLayout.CENTER);
-//
-//        new HistoryDetailPageController(this, record);
-//    }
+    public HistoryDetailPage(SimulationHistoryRecord record) {
+        setLayout(new BorderLayout());
+        setBackground(Theme.BACKGROUND);
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel header = prepareHeaderPanel();
+        add(header, BorderLayout.NORTH);
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(Theme.PRIMARY_LIGHT);
+        tabbedPane.setForeground(Theme.PRIMARY);
+        tabbedPane.setFont(Theme.DEFAULT_FONT);
+
+        tabbedPane.addTab("Configuration", prepareConfigTab());
+        tabbedPane.addTab("Results", prepareResultsTab());
+
+        add(tabbedPane, BorderLayout.CENTER);
+
+        new HistoryDetailPageController(this, record);
+    }
 
     private JPanel prepareHeaderPanel() {
         JPanel headerPanel = new JPanel();
@@ -118,6 +119,9 @@ public class HistoryDetailPage extends JPanel {
 
             generalConfigPanel.add(cell);
         }
+
+        generalConfigPanel.revalidate();
+        generalConfigPanel.repaint();
     }
 
     private JPanel prepareDistributionsPanel() {
@@ -154,6 +158,8 @@ public class HistoryDetailPage extends JPanel {
 
         wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, wrapper.getPreferredSize().height));
         distributionsPanel.add(wrapper);
+        distributionsPanel.revalidate();
+        distributionsPanel.repaint();
     }
 
     private JScrollPane prepareResultsTab() {
@@ -188,6 +194,8 @@ public class HistoryDetailPage extends JPanel {
         panel.add(tablePanel);
         resultsPanel.add(panel);
         resultsPanel.add(Box.createVerticalStrut(30));
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 
     public void addChart(String title, JFreeChart chart) {
@@ -209,6 +217,8 @@ public class HistoryDetailPage extends JPanel {
         panel.add(chartPanel);
         resultsPanel.add(panel);
         resultsPanel.add(Box.createVerticalStrut(30));
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 }
 

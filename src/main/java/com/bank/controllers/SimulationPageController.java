@@ -1,11 +1,14 @@
 package com.bank.controllers;
 
+import com.bank.models.SimulationHistoryRecord;
+import com.bank.simulation.SimulationConfigs;
 import com.bank.simulation.Simulator;
 import com.bank.simulation.SimulationData;
 import com.bank.simulation.SimulationEventListener;
 import com.bank.ui.components.SimulationEventsTable;
 import com.bank.ui.components.SimulationStatisticsTable;
 import com.bank.ui.pages.SimulationPage;
+import com.bank.utils.SimulationHistoryStorage;
 import com.bank.utils.StatisticsVisualization;
 
 import javax.swing.*;
@@ -17,6 +20,7 @@ public class SimulationPageController {
     private Map<String, JTextField> parameters;
     private final SimulationEventsTable simulationEventsTable = new SimulationEventsTable();
     private final SimulationStatisticsTable statisticsTable = new SimulationStatisticsTable();
+    private final SimulationHistoryStorage historyStorage = new SimulationHistoryStorage();
 
     public SimulationPageController(SimulationPage view) {
         this.view = view;
@@ -93,81 +97,85 @@ public class SimulationPageController {
 
         view.showResults();
         showSuccessMessage("Simulation Finished!");
+        saveSimulationHistory(simulationData, statistics);
     }
 
-//    private void saveSimulationHistory() {
-//        try {
-//            Object[][] eventsData = simulationEventsTable.getTableData();
-//            List<SimulationHistoryRecord.EventRow> events = new ArrayList<>();
-//            for (Object[] row : eventsData) {
-//                events.add(new SimulationHistoryRecord.EventRow(
-//                        Integer.parseInt(row[0].toString()),
-//                        row[1].toString(),
-//                        row[2].toString(),
-//                        row[3].toString(),
-//                        row[4].toString(),
-//                        row[5].toString(),
-//                        row[6].toString()
-//                ));
-//            }
-//
-//            SimulationConfigs configs = SimulationConfigs.instance;
-//            List<SimulationHistoryRecord.EmployeeConfigSnapshot> employees = new ArrayList<>();
-//            for (EmployeeData emp : configs.getOutdoorCashEmployeesData()) {
-//                employees.add(new SimulationHistoryRecord.EmployeeConfigSnapshot(
-//                        emp.getArea().toString(),
-//                        emp.getType().toString(),
-//                        emp.getId(),
-//                        new LinkedHashMap<>(emp.getServiceTimeProbabilities())
-//                ));
-//            }
-//            for (EmployeeData emp : configs.getIndoorCashEmployeesData()) {
-//                employees.add(new SimulationHistoryRecord.EmployeeConfigSnapshot(
-//                        emp.getArea().toString(),
-//                        emp.getType().toString(),
-//                        emp.getId(),
-//                        new LinkedHashMap<>(emp.getServiceTimeProbabilities())
-//                ));
-//            }
-//            for (EmployeeData emp : configs.getIndoorServiceEmployeesData()) {
-//                employees.add(new SimulationHistoryRecord.EmployeeConfigSnapshot(
-//                        emp.getArea().toString(),
-//                        emp.getType().toString(),
-//                        emp.getId(),
-//                        new LinkedHashMap<>(emp.getServiceTimeProbabilities())
-//                ));
-//            }
-//
-//            SimulationHistoryRecord.SimulationConfigSnapshot configSnapshot =
-//                    new SimulationHistoryRecord.SimulationConfigSnapshot(
-//                            configs.getOutdoorQueueCapacity(),
-//                            configs.getCashCustomerProbability(),
-//                            new LinkedHashMap<>(configs.getTimeBetweenArrivalProbabilities()),
-//                            employees
-//                    );
-//
-//            SimulationHistoryRecord.SimulationParams params =
-//                    new SimulationHistoryRecord.SimulationParams(
-//                            Integer.parseInt(simulationParamFields.get("simulation_days").getText()),
-//                            Integer.parseInt(simulationParamFields.get("simulation_customers").getText()),
-//                            Integer.parseInt(simulationParamFields.get("simulation_repetition").getText())
-//                    );
-//
-//            SimulationHistoryRecord record = new SimulationHistoryRecord(
-//                    null,
-//                    events,
-//                    new ArrayList<>(simulator.getFirstRunStats().getStatistics()),
-//                    new ArrayList<>(simulator.getFirstBatchStats().getStatistics()),
-//                    new ArrayList<>(simulator.getTotalStats().getStatistics()),
-//                    configSnapshot,
-//                    params
-//            );
-//
-//            historyStorage.saveSimulation(record);
-//        } catch (Exception e) {
-//            System.err.println("Failed to save simulation history: " + e.getMessage());
-//        }
-//    }
+    private void saveSimulationHistory(List<SimulationData> simulationData,
+                                       List<SimulationData.Statistic> statistics) {
+        try {
+            Object[][] eventsData = simulationEventsTable.getTableData();
+            List<SimulationHistoryRecord.EventRow> events = new ArrayList<>();
+            for (Object[] row : eventsData) {
+                events.add(new SimulationHistoryRecord.EventRow(
+                        parseInt(row[0]),
+                        parseInt(row[1]),
+                        parseInt(row[2]),
+                        parseInt(row[3]),
+                        "Yes".equalsIgnoreCase(row[4].toString()),
+                        parseInt(row[5]),
+                        parseInt(row[6]),
+                        parseInt(row[7]),
+                        parseNotApplicable(row[8]),
+                        parseNotApplicable(row[9])
+                ));
+            }
+
+            SimulationConfigs configs = SimulationConfigs.instance;
+            SimulationHistoryRecord.SimulationConfigSnapshot configSnapshot =
+                    new SimulationHistoryRecord.SimulationConfigSnapshot(
+                            configs.getReviewTime(),
+                            configs.getFirstFloorMaxCapacity(),
+                            configs.getBasementFloorMaxCapacity(),
+                            configs.getFirstFloorStartUnits(),
+                            configs.getBasementFloorStartUnits(),
+                            configs.getOccupiedRoomsDistribution().getProbabilities(),
+                            configs.getOrderLeadTimeDistribution().getProbabilities(),
+                            configs.getRoomConsumptionDistribution().getProbabilities()
+                    );
+
+            SimulationHistoryRecord.SimulationParams params =
+                    new SimulationHistoryRecord.SimulationParams(
+                            Integer.parseInt(parameters.get("simulationDays").getText()),
+                            Integer.parseInt(parameters.get("simulationRuns").getText())
+                    );
+
+            List<SimulationHistoryRecord.SimulationRunSnapshot> runSnapshots = simulationData.stream()
+                    .map(SimulationHistoryRecord.SimulationRunSnapshot::fromSimulationData)
+                    .toList();
+
+            SimulationHistoryRecord record = new SimulationHistoryRecord(
+                    null,
+                    params,
+                    configSnapshot,
+                    events,
+                    new ArrayList<>(statistics),
+                    new ArrayList<>(runSnapshots)
+            );
+
+            historyStorage.saveSimulation(record);
+        } catch (Exception e) {
+            System.err.println("Failed to save simulation history: " + e.getMessage());
+        }
+    }
+
+    private int parseInt(Object value) {
+        return Integer.parseInt(value.toString());
+    }
+
+    private Integer parseNotApplicable(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = value.toString().trim();
+        if (text.isEmpty() || "N/A".equalsIgnoreCase(text)) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     private void setupActions() {
         view.setStartButtonAction(action -> startSimulation());

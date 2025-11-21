@@ -51,7 +51,7 @@ public class MainFrame extends JFrame {
         cardLayout.show(contentPanel, name);
         if (name.equals("history")) {
             HistoryPage historyPage = (HistoryPage) pages.get("history");
-//            historyPage.refresh();
+            historyPage.refresh();
         }
     }
 }

@@ -1,104 +1,115 @@
 package com.bank.controllers;
 
+import com.bank.models.SimulationHistoryRecord;
+import com.bank.ui.components.ProbabilitiesTable;
+import com.bank.ui.components.SimulationEventsTable;
+import com.bank.ui.components.SimulationStatisticsTable;
 import com.bank.ui.pages.HistoryDetailPage;
+import com.bank.utils.StatisticsVisualization;
+
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class HistoryDetailPageController {
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final HistoryDetailPage view;
+    private final SimulationHistoryRecord record;
 
-    public HistoryDetailPageController(HistoryDetailPage view) {
+    public HistoryDetailPageController(HistoryDetailPage view, SimulationHistoryRecord record) {
         this.view = view;
+        this.record = record;
 
-        loadParams();
+        loadRecord();
     }
 
-    private void loadParams() {
-//        String dateStr = record.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//        view.setSubtitleText("Run Date: " + dateStr);
-//
-//        SimulationHistoryRecord.SimulationConfigSnapshot config = record.getConfigSnapshot();
-//        SimulationHistoryRecord.SimulationParams params = record.getSimulationParams();
-//
-//        String[][] configs = {
-//                {"Outdoor Queue Size", String.valueOf(config.getOutdoorQueueCapacity())},
-//                {"Probability of Cash Customer", String.valueOf(config.getCashCustomerProbability())},
-//                {"Number of Outdoor Tellers", String.valueOf(countEmployees(config.getEmployees(), "OUTDOOR", "CASH"))},
-//                {"Number of Indoor Tellers", String.valueOf(countEmployees(config.getEmployees(), "INDOOR", "CASH"))},
-//                {"Number of Indoor Service Employees", String.valueOf(countEmployees(config.getEmployees(), "INDOOR", "SERVICE"))},
-//                {"Simulation Days", String.valueOf(params.getSimulationDays())},
-//                {"Customers per Day", String.valueOf(params.getSimulationCustomers())},
-//                {"Simulation Repetition", String.valueOf(params.getSimulationRepetition())}
-//        };
-//        view.setGeneralConfigPanelCells(configs);
-//
-//        ProbabilitiesTable timeBetweenArrivalsTable = new ProbabilitiesTable(config.getTimeBetweenArrivalProbabilities());
-//        timeBetweenArrivalsTable.setEnabled(false);
-//        view.addDistributionTable("Time Between Arrivals", timeBetweenArrivalsTable);
-//
-//        Map<String, List<SimulationHistoryRecord.EmployeeConfigSnapshot>> grouped = new LinkedHashMap<>();
-//        for (SimulationHistoryRecord.EmployeeConfigSnapshot emp : config.getEmployees()) {
-//            String key = emp.getArea() + "_" + emp.getType();
-//            grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(emp);
-//        }
-//
-//        for (var entry : grouped.entrySet()) {
-//            for (int i = 0; i < entry.getValue().size(); i++) {
-//                SimulationHistoryRecord.EmployeeConfigSnapshot emp = entry.getValue().get(i);
-//                String label = TextUtils.capitalize(
-//                        String.join(" ",
-//                                Arrays.stream(entry.getKey().split("_"))
-//                                        .map(str -> str.matches("-?\\d+(\\.\\d+)?")
-//                                                ? String.valueOf(Integer.parseInt(str) + 1)
-//                                                : str)
-//                                        .toList())) + " " + (i + 1);
-//
-//                ProbabilitiesTable table = new ProbabilitiesTable(emp.getServiceTimeProbabilities());
-//                table.setEnabled(false);
-//                view.addDistributionTable(label, table);
-//            }
-//        }
-//
-//
-//        SimulationEventsTable eventsTable = new SimulationEventsTable();
-//        for (SimulationHistoryRecord.EventRow event : record.getEvents()) {
-//            eventsTable.addEventRow(
-//                    event.time(),
-//                    event.type(),
-//                    event.customer(),
-//                    event.service(),
-//                    event.employee(),
-//                    event.queues(),
-//                    event.action()
-//            );
-//        }
-//        view.addDataTable("First Run's Simulation Events", eventsTable, 400);
-//
-//        var firstRunStats = record.getFirstRunStats();
-//        var firstBatchStats = record.getFirstBatchStats();
-//        var totalStats = record.getTotalStats();
-//
-//        SimulationStatisticsTable firstRunStatsTable = new SimulationStatisticsTable();
-//        firstRunStatsTable.setStatistics(new ArrayList<>(firstRunStats));
-//        view.addDataTable("First Run Statistics", firstRunStatsTable, 300);
-//
-//        SimulationStatisticsTable firstBatchStatsTable = new SimulationStatisticsTable();
-//        firstBatchStatsTable.setStatistics(new ArrayList<>(firstBatchStats));
-//        view.addDataTable("First Batch Statistics", firstBatchStatsTable, 300);
-//
-//        SimulationStatisticsTable totalStatsTable = new SimulationStatisticsTable();
-//        totalStatsTable.setStatistics(new ArrayList<>(totalStats));
-//        view.addDataTable("Total Statistics", totalStatsTable, 300);
-//
-//        view.addChart("Average Service Times", createAvgServiceTimeChart(totalStats));
-//        view.addChart("Average Wait Times", createAvgWaitTimesChart(totalStats));
-//        view.addChart("Maximum Queue Sizes", createMaxQueueSizeChart(totalStats));
-//        view.addChart("Wait Probability Distribution", createWaitProbabilityPieChart(totalStats));
-//        view.addChart("Idle vs Busy Portion", createIdlePortionChart(totalStats));
+    private void loadRecord() {
+        view.setSubtitleText("Run Date: " + record.getTimestamp().format(DATE_FORMAT));
+
+        loadGeneralConfigs();
+        loadDistributions();
+        loadEvents();
+        loadStatistics();
+        loadCharts();
     }
 
-//    private int countEmployees(List<SimulationHistoryRecord.EmployeeConfigSnapshot> employees, String area, String type) {
-//        return (int) employees.stream()
-//                .filter(e -> e.getArea().equals(area) && e.getType().equals(type))
-//                .count();
-//    }
+    private void loadGeneralConfigs() {
+        SimulationHistoryRecord.SimulationConfigSnapshot config = record.getConfigSnapshot();
+        SimulationHistoryRecord.SimulationParams params = record.getSimulationParams();
 
+        String[][] configs = new String[][]{
+                {"Review Interval (days)", String.valueOf(config.getReviewTime())},
+                {"First Floor Max Capacity", String.valueOf(config.getFirstFloorMaxCapacity())},
+                {"Basement Max Capacity", String.valueOf(config.getBasementFloorMaxCapacity())},
+                {"First Floor Start Units", String.valueOf(config.getFirstFloorStartUnits())},
+                {"Basement Start Units", String.valueOf(config.getBasementFloorStartUnits())},
+                {"Simulation Days", String.valueOf(params.simulationDays())},
+                {"Simulation Runs", String.valueOf(params.simulationRuns())}
+        };
+        view.setGeneralConfigPanelCells(configs);
+    }
+
+    private void loadDistributions() {
+        SimulationHistoryRecord.SimulationConfigSnapshot config = record.getConfigSnapshot();
+
+        addDistributionTable("Occupied Rooms Distribution", config.getOccupiedRoomsProbabilities());
+        addDistributionTable("Order Lead Time Distribution", config.getOrderLeadTimeProbabilities());
+        addDistributionTable("Room Consumption Distribution", config.getRoomConsumptionProbabilities());
+    }
+
+    private void addDistributionTable(String title, Map<Integer, Double> probabilities) {
+        ProbabilitiesTable table = new ProbabilitiesTable(probabilities);
+        table.setEnabled(false);
+        view.addDistributionTable(title, table);
+    }
+
+    private void loadEvents() {
+        SimulationEventsTable eventsTable = new SimulationEventsTable();
+        eventsTable.setEnabled(false);
+
+        for (SimulationHistoryRecord.EventRow event : record.getEvents()) {
+            eventsTable.addEventRow(
+                    event.getDay(),
+                    event.getDemand(),
+                    event.getFirstFloorStart(),
+                    event.getBasementFloorStart(),
+                    event.isDidTransfer() ? "Yes" : "No",
+                    event.getFirstFloorEnd(),
+                    event.getBasementFloorEnd(),
+                    event.getDaysTillReview(),
+                    event.getOrderSize() == null ? "N/A" : event.getOrderSize().toString(),
+                    event.getLeadTime() == null ? "N/A" : event.getLeadTime().toString()
+            );
+        }
+
+        view.addDataTable("First Run's Simulation Events", eventsTable, 400);
+    }
+
+    private void loadStatistics() {
+        SimulationStatisticsTable statisticsTable = new SimulationStatisticsTable();
+        statisticsTable.setStatistics(new ArrayList<>(record.getStatistics()));
+        statisticsTable.setEnabled(false);
+        view.addDataTable("Simulation Statistics", statisticsTable, 300);
+    }
+
+    private void loadCharts() {
+        var simulationRuns = record.rebuildSimulationRuns();
+        view.addChart("Average Ending First Floor Inventory",
+                StatisticsVisualization.createAvgEndingFFChart(simulationRuns));
+        view.addChart("Average Ending Basement Inventory",
+                StatisticsVisualization.createAvgEndingBasementChart(simulationRuns));
+        view.addChart("Distribution of Daily Demand",
+                StatisticsVisualization.createDailyDemandHistogram(simulationRuns));
+        view.addChart("Distribution of Lead Time",
+                StatisticsVisualization.createLeadTimeHistogram(simulationRuns));
+        view.addChart("Shortage Days Per Run",
+                StatisticsVisualization.createShortageDaysChart(simulationRuns));
+        view.addChart("Total Basement Transfers Per Run",
+                StatisticsVisualization.createTransfersChart(simulationRuns));
+        view.addChart("Ending FF & Ending B Inventory",
+                StatisticsVisualization.createDualAxisInventoryChart(simulationRuns));
+        view.addChart("Review Cycle Timeline",
+                StatisticsVisualization.createReviewCycleTimeline(simulationRuns));
+    }
 }
