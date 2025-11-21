@@ -1,9 +1,12 @@
 package com.bank.controllers;
 
 import com.bank.simulation.Simulator;
+import com.bank.simulation.SimulationData;
 import com.bank.simulation.SimulationEventListener;
 import com.bank.ui.components.SimulationEventsTable;
+import com.bank.ui.components.SimulationStatisticsTable;
 import com.bank.ui.pages.SimulationPage;
+import com.bank.utils.StatisticsVisualization;
 
 import javax.swing.*;
 import java.util.*;
@@ -13,6 +16,7 @@ public class SimulationPageController {
     private final Simulator simulator;
     private Map<String, JTextField> parameters;
     private final SimulationEventsTable simulationEventsTable = new SimulationEventsTable();
+    private final SimulationStatisticsTable statisticsTable = new SimulationStatisticsTable();
 
     public SimulationPageController(SimulationPage view) {
         this.view = view;
@@ -63,39 +67,32 @@ public class SimulationPageController {
 
         simulator.startSimulation();
         
+        List<SimulationData> simulationData = simulator.getSimulationData();
+        List<SimulationData.Statistic> statistics = SimulationData.calculateStatistics(simulationData);
+        statisticsTable.setStatistics(new ArrayList<>(statistics));
+        
         view.addDataTable("First Run's Events", simulationEventsTable, 400);
+        view.addDataTable("Simulation Statistics", statisticsTable, 300);
+        
+        view.addChart("Average Ending First Floor Inventory", 
+            StatisticsVisualization.createAvgEndingFFChart(simulationData));
+        view.addChart("Average Ending Basement Inventory", 
+            StatisticsVisualization.createAvgEndingBasementChart(simulationData));
+        view.addChart("Distribution of Daily Demand", 
+            StatisticsVisualization.createDailyDemandHistogram(simulationData));
+        view.addChart("Distribution of Lead Time", 
+            StatisticsVisualization.createLeadTimeHistogram(simulationData));
+        view.addChart("Shortage Days Per Run", 
+            StatisticsVisualization.createShortageDaysChart(simulationData));
+        view.addChart("Total Basement Transfers Per Run", 
+            StatisticsVisualization.createTransfersChart(simulationData));
+        view.addChart("Ending FF & Ending B Inventory", 
+            StatisticsVisualization.createDualAxisInventoryChart(simulationData));
+        view.addChart("Review Cycle Timeline", 
+            StatisticsVisualization.createReviewCycleTimeline(simulationData));
+
         view.showResults();
         showSuccessMessage("Simulation Finished!");
-
-//        simulator.setSimulationCustomersCount(Integer.parseInt(simulationParamFields.get("simulation_customers").getText()));
-//        simulator.setSimulationDays(Integer.parseInt(simulationParamFields.get("simulation_days").getText()));
-//        simulator.setSimulationRetries(Integer.parseInt(simulationParamFields.get("simulation_repetition").getText()));
-//
-//        simulator.startSimulation();
-//
-//        var firstRunStats = simulator.getFirstRunStats().getStatistics();
-//        var firstBatchStats = simulator.getFirstBatchStats().getStatistics();
-//        var totalStats = simulator.getTotalStats().getStatistics();
-//
-//        firstRunStatsTable.setStatistics(firstRunStats);
-//        firstBatchStatsTable.setStatistics(firstBatchStats);
-//        totalStatsTable.setStatistics(totalStats);
-//
-//        view.addDataTable("First Run's Simulation Events", simulationEventsTable, 400);
-//        view.addDataTable("First Run Statistics", firstRunStatsTable, 300);
-//        view.addDataTable("First Batch Statistics", firstBatchStatsTable, 300);
-//        view.addDataTable("Total Statistics", totalStatsTable, 300);
-//
-//
-//        view.addChart("Average Service Times", createAvgServiceTimeChart(totalStats));
-//        view.addChart("Average Wait Times", createAvgWaitTimesChart(totalStats));
-//        view.addChart("Maximum Queue Sizes", createMaxQueueSizeChart(totalStats));
-//        view.addChart("Wait Probability Distribution", createWaitProbabilityPieChart(totalStats));
-//        view.addChart("Idle vs Busy Portion", createIdlePortionChart(totalStats));
-//
-//        view.showResults();
-//        saveSimulationHistory();
-//        showSuccessMessage("Simulation Finished!");
     }
 
 //    private void saveSimulationHistory() {

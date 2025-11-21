@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bank.utils.StatisticsUtils.calculateVariance;
+
 public class SimulationData {
     public record Statistic(String label, String value) implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -18,10 +20,16 @@ public class SimulationData {
     public int totalShortageAmount = 0;
 
     public int totalDemand = 0;
+    public List<Integer> dailyDemandValues = new ArrayList<>();
 
     public int totalOrders = 0;
     public int totalLeadTime = 0;
     public int totalOrderSize = 0;
+    public List<Integer> leadTimes = new ArrayList<>();
+    public int totalTransfers = 0;
+    
+    public List<Integer> orderPlacementDays = new ArrayList<>();
+    public List<Integer> deliveryDays = new ArrayList<>();
 
     public double avgEndingFF;
     public double avgEndingBasement;
@@ -71,13 +79,13 @@ public class SimulationData {
 
         // Variances
         var avgFFEndUnits = simulationData.stream().map(sd -> sd.avgEndingFF).toList();
-        double ffEndUnitsVariance = variance(avgFFEndUnits);
+        double ffEndUnitsVariance = calculateVariance(avgFFEndUnits);
         var avgBFEndUnits = simulationData.stream().map(sd -> sd.avgEndingBasement).toList();
-        double bfEndUnitsVariance = variance(avgBFEndUnits);
+        double bfEndUnitsVariance = calculateVariance(avgBFEndUnits);
         var avgDailyDemand = simulationData.stream().map(sd -> sd.avgDailyDemand).toList();
-        double dailyDemandVariance = variance(avgDailyDemand);
+        double dailyDemandVariance = calculateVariance(avgDailyDemand);
         var avgLeadTime = simulationData.stream().map(sd -> sd.avgLeadTime).toList();
-        double leadTimeVariance = variance(avgLeadTime);
+        double leadTimeVariance = calculateVariance(avgLeadTime);
 
         // Shortage Related
         long runsWithShortage = simulationData.stream().filter(sd -> sd.totalShortageDays > 0).count();
@@ -89,8 +97,6 @@ public class SimulationData {
                     .sum()
                         / (double) runsWithShortage
                 : 0.0;
-
-
 
         statistics.add(new Statistic("Total Average Ending FF Units", String.valueOf(totalAvgEndingFF)));
         statistics.add(new Statistic("Total Average Ending Basement Units", String.valueOf(totalAvgEndingBasement)));
@@ -110,15 +116,5 @@ public class SimulationData {
         return statistics;
     }
 
-    private static double variance(List<Double> values) {
-        int n = values.size();
-        if (n <= 1) return 0.0; // return 0 if only one value
-
-        double mean = values.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        double sumSquaredDiffs = values.stream()
-                .mapToDouble(v -> (v - mean) * (v - mean))
-                .sum();
-        return sumSquaredDiffs / (n - 1);
-    }
 
 }

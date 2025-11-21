@@ -64,6 +64,7 @@ public class Simulator {
         for(int day = 1; day <= simulationDays; day++) {
             if (state.orderState.hasOrder && state.orderState.timeTillDelivery == 0) {
                 state.inventory.basementFloorUnits = Math.min(state.inventory.basementFloorUnits + state.orderState.orderSize, basementFloorMaxCapacity);
+                data.deliveryDays.add(day);
 
                 if(shouldPrint && eventListener != null) {
                     eventListener.onDeliveryEvent(day, state.orderState.orderSize);
@@ -81,6 +82,7 @@ public class Simulator {
             updateCurrentDemand();
 
             data.totalDemand += state.demandState.currentDemand;
+            data.dailyDemandValues.add(state.demandState.currentDemand);
 
             int consumed = Math.min(state.demandState.currentDemand, state.inventory.firstFloorUnits);
             int shortage = state.demandState.currentDemand - consumed;
@@ -88,6 +90,7 @@ public class Simulator {
 
             if (state.inventory.firstFloorUnits == 0) {
                 didTransfer = true;
+                data.totalTransfers++;
                 state.inventory.firstFloorUnits += Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
                 state.inventory.basementFloorUnits -= Math.min(state.inventory.basementFloorUnits, firstFloorMaxCapacity);
 
@@ -113,6 +116,8 @@ public class Simulator {
                 state.orderState.orderSize = basementFloorMaxCapacity - state.inventory.basementFloorUnits;
                 data.totalOrderSize += state.orderState.orderSize;
                 data.totalLeadTime += state.orderState.timeTillDelivery;
+                data.leadTimes.add(state.orderState.timeTillDelivery);
+                data.orderPlacementDays.add(day);
                 state.orderState.hasOrder = true;
                 state.reviewState.timeTillReview = reviewTime;
             }
@@ -174,4 +179,7 @@ public class Simulator {
         this.simulationRuns = simulationRuns;
     }
 
+    public List<SimulationData> getSimulationData() {
+        return simulationData;
+    }
 }
