@@ -21,7 +21,7 @@ public class MainFrame extends JFrame {
     }};
 
     public MainFrame() {
-        setTitle("BankQueue Sim");
+        setTitle("Hospital Inventory Sim");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
         setLocationRelativeTo(null);
