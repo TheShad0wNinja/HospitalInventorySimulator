@@ -189,7 +189,7 @@ private final Map<String, JTextField> generalConfigs = new HashMap<>();
 
     public void setOccupiedRoomsTable(Map<Integer, Double> probabilities) {
         occupiedRoomsTable = new ProbabilitiesTable(probabilities);
-        addDistributionTable("Number of Occupied Rooms", occupiedRoomsTable);
+        addDistributionTable("Occupied Rooms", occupiedRoomsTable);
     }
 
     public void setOrderLeadTimeTable(Map<Integer, Double> probabilities) {
