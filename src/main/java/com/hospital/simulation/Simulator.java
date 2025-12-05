@@ -37,6 +37,7 @@ public class Simulator {
     }
 
     public void startSimulation() {
+        rand.setSeed(System.currentTimeMillis());
         reviewTime = configs.getReviewTime();
         firstFloorMaxCapacity = configs.getFirstFloorMaxCapacity();
         basementFloorMaxCapacity = configs.getBasementFloorMaxCapacity();
