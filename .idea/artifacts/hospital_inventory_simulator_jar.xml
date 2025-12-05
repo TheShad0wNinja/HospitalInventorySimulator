@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="hospital_inventory_simulator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/hospital_inventory_simulator_jar</output-path>
+    <root id="archive" name="simulation.jar">
+      <element id="module-output" name="simulation" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/jiconfont/jiconfont/1.0.0/jiconfont-1.0.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jfree/jfreechart/1.5.6/jfreechart-1.5.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/jiconfont/jiconfont-google_material_design_icons/2.2.0.2/jiconfont-google_material_design_icons-2.2.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/jiconfont/jiconfont-swing/1.0.0/jiconfont-swing-1.0.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

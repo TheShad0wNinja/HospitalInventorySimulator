@@ -39,11 +39,11 @@ public class HistoryDetailPageController {
         SimulationHistoryRecord.SimulationParams params = record.getSimulationParams();
 
         String[][] configs = new String[][]{
-                {"Review Interval (days)", String.valueOf(config.getReviewTime())},
-                {"First Floor Max Capacity", String.valueOf(config.getFirstFloorMaxCapacity())},
-                {"Basement Max Capacity", String.valueOf(config.getBasementFloorMaxCapacity())},
-                {"First Floor Start Units", String.valueOf(config.getFirstFloorStartUnits())},
-                {"Basement Start Units", String.valueOf(config.getBasementFloorStartUnits())},
+                {"Review Time", String.valueOf(config.getReviewTime())},
+                {"First Floor Maximum Capacity", String.valueOf(config.getFirstFloorMaxCapacity())},
+                {"Basement Maximum Capacity", String.valueOf(config.getBasementFloorMaxCapacity())},
+                {"First Floor Starting Units", String.valueOf(config.getFirstFloorStartUnits())},
+                {"Basement Starting Units", String.valueOf(config.getBasementFloorStartUnits())},
                 {"Simulation Days", String.valueOf(params.simulationDays())},
                 {"Simulation Runs", String.valueOf(params.simulationRuns())}
         };
