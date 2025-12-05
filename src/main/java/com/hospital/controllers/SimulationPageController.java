@@ -77,8 +77,10 @@ public class SimulationPageController {
         
         view.addDataTable("First Run's Events", simulationEventsTable, 400);
         view.addDataTable("Simulation Statistics", statisticsTable, 300);
-        
-        view.addChart("Average Ending First Floor Inventory", 
+
+        view.addChart("First Run's Review Cycle Timeline",
+                StatisticsVisualization.createReviewCycleTimeline(simulationData));
+        view.addChart("Average Ending First Floor Inventory",
             StatisticsVisualization.createAvgEndingFFChart(simulationData));
         view.addChart("Average Ending Basement Inventory", 
             StatisticsVisualization.createAvgEndingBasementChart(simulationData));
@@ -92,8 +94,6 @@ public class SimulationPageController {
             StatisticsVisualization.createTransfersChart(simulationData));
         view.addChart("Ending FF & Ending B Inventory", 
             StatisticsVisualization.createDualAxisInventoryChart(simulationData));
-        view.addChart("Review Cycle Timeline", 
-            StatisticsVisualization.createReviewCycleTimeline(simulationData));
 
         view.showResults();
         showSuccessMessage("Simulation Finished!");

@@ -95,6 +95,8 @@ public class HistoryDetailPageController {
 
     private void loadCharts() {
         var simulationRuns = record.rebuildSimulationRuns();
+        view.addChart("First Run's Review Cycle Timeline",
+                StatisticsVisualization.createReviewCycleTimeline(simulationRuns));
         view.addChart("Average Ending First Floor Inventory",
                 StatisticsVisualization.createAvgEndingFFChart(simulationRuns));
         view.addChart("Average Ending Basement Inventory",
@@ -109,7 +111,5 @@ public class HistoryDetailPageController {
                 StatisticsVisualization.createTransfersChart(simulationRuns));
         view.addChart("Ending FF & Ending B Inventory",
                 StatisticsVisualization.createDualAxisInventoryChart(simulationRuns));
-        view.addChart("Review Cycle Timeline",
-                StatisticsVisualization.createReviewCycleTimeline(simulationRuns));
     }
 }
