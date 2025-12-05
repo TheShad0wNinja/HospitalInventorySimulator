@@ -19,11 +19,6 @@ public class Simulator {
     private ProbabilityDistribution orderLeadTimeDistribution;
     private ProbabilityDistribution roomConsumptionDistribution;
 
-
-    private SimulationData firstRunStats;
-    private SimulationData firstBatchStats;
-    private SimulationData totalStats;
-
     private SimulationState state;
     private List<SimulationData> simulationData;
     private SimulationEventListener eventListener;
